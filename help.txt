@@ -1,0 +1,13 @@
+=== AJUDA ===
+SISTEMA DE CARTEIRAS FTCoin
+
+1. Carteiras:
+   - Criar: Cadastra nova carteira
+   - Editar: Altera dados da carteira
+   - Excluir: Remove carteira existente
+   - Listar: Mostra todas as carteiras
+
+2. Ajuda: Mostra estas informações
+
+3. Sair: Encerra o programa
+
