@@ -1,0 +1,13 @@
+=== HELP ===
+FTCoin Wallet System
+
+1. Wallets:
+   - Create: Register a new wallet
+   - Edit: Modify wallet data
+   - Delete: Remove an existing wallet
+   - List: Show all wallets
+
+2. Help: Show this information
+
+3. Exit: Close the program
+
