@@ -7,7 +7,11 @@ FTCoin Wallet System
    - Delete: Remove an existing wallet
    - List: Show all wallets
 
-2. Help: Show this information
+2. Movements:
+   - Register Purchase: Add FTCoins to a wallet
+   - Register Sale: Remove FTCoins from a wallet
+   - List Movements: Show all transactions for a wallet
 
-3. Exit: Close the program
+3. Help: Show this information
 
+4. Exit: Close the program
