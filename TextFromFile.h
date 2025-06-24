@@ -1,17 +1,20 @@
-#ifndef TEXTFROMFILE_H
-#define TEXTFROMFILE_H
+#ifndef TEXTFROMFILE_H_
+#define TEXTFROMFILE_H_
 
 #include <string>
-
 using namespace std;
 
-class TextFromFile {
-private:
-    string content;
-    
-public:
-    TextFromFile(const string& filename);
-    string getContent() const;
-};
+class TextFromFile final
+	{
+	private:
+		string fileName;
+		string fileContent;
 
-#endif
+	public:
+		TextFromFile(string fileName);
+		virtual ~TextFromFile();
+		string& getFileContent();
+		string& getFileName();
+	};
+
+#endif /* TEXTFROMFILE_H_ */

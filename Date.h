@@ -1,32 +1,36 @@
-#ifndef DATE_H
-#define DATE_H
+#ifndef DATE_H_
+#define DATE_H_
 
 #include <iostream>
-#include <string>
+#include <ctime>
 
-class Date {
-private:
-    int day;
-    int month;
-    int year;
-    
-public:
-    Date(int d = 1, int m = 1, int y = 2000);
+class Date
+	{
+	private:
+		int day;
+		int month;
+		int year;
 
-    int getDay() const;
-    int getMonth() const;
-    int getYear() const;
+	public:
+		Date();
+		Date(int day, int month, int year);
+		Date(std::string isoFormat);
+		virtual ~Date();
 
-    void setDay(int day);
-    void setMonth(int month);
-    void setYear(int year);
+		int getYear();
+		int getMonth();
+		int getDay();
+		std::string getIsoFormat();
 
-    friend std::ostream& operator<<(std::ostream& os, const Date& date);
-    friend std::istream& operator>>(std::istream& is, Date& date);
+		bool operator==(const Date &other) const;
+		bool operator!=(const Date &other) const;
+		bool operator>(const Date &other) const;
+		bool operator>=(const Date &other) const;
+		bool operator<(const Date &other) const;
+		bool operator<=(const Date &other) const;
 
-    std::string toString() const;
+		friend std::ostream& operator<<(std::ostream &os, const Date &date);
+		friend std::istream& operator>>(std::istream &is, Date &date);
+	};
 
-    bool isValid() const;
-};
-
-#endif
+#endif /* DATE_H_ */
