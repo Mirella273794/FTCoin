@@ -31,7 +31,7 @@ void Controller::showMainMenu() {
 
 void Controller::showHelp() {
     TextFromFile helpText("help.txt");
-    Utils::printMessage(helpText.getContent());
+    Utils::printMessage(helpText.getFileContent());
 }
 
 void Controller::showWalletMenu() {
@@ -231,7 +231,7 @@ void Controller::listMovements() {
         string typeStr = (movement.getType() == 'C') ? "Purchase" : "Sale";
         Utils::printMessage(
             "ID: " + to_string(movement.getMovementId()) +
-            " | Date: " + movement.getDate().toString() +
+            " | Date: " + movement.getDate().getIsoFormat() +
             " | Type: " + typeStr +
             " | Amount: " + to_string(movement.getAmount())
         );
