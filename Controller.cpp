@@ -106,7 +106,7 @@ void Controller::deleteWallet() {
         if ((*it)->getId() == id) {
 
             string confirm = Utils::getInput("Are you sure you want to Delete? (Y/N): ");
-            if (toupper(confirm[0]) != 'S') {
+            if (toupper(confirm[0]) != 'Y') {
                 Utils::printMessage("Operation cancelled.");
                 return;
             }
