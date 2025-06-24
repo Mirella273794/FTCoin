@@ -2,14 +2,22 @@
 #define CONTROLLER_H
 
 #include <vector>
+#include <string>
 #include "Wallet.h"
+#include "AbstractMovementDAO.h"
+#include "Menu.h"
 
 class Menu; 
 class TextFromFile;
 
+enum class DataBaseSelector { MEMORY, MARIADB };
+
 class Controller {
 private:
     std::vector<Wallet*> wallets;
+    AbstractMovementDAO* movementDAO;
+    
+    // Métodos de carteira
     
     void showMainMenu();
     void showWalletMenu();
@@ -19,9 +27,17 @@ private:
     void deleteWallet();
     void listWallets();
     
+    // Métodos de movimentação
+    void showMovementMenu();
+    void registerPurchase();
+    void registerSale();
+    void listMovements();
+    double calculateBalance(int walletId);
+    
 public:
-    void start();
+    Controller(DataBaseSelector dataBaseSelector = DataBaseSelector::MEMORY);
     ~Controller();
+    void start();
 };
 
 #endif
