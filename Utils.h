@@ -10,6 +10,7 @@ public:
     static void printMessage(const std::string& message);
     static string getInput(const std::string& prompt);
     static int getIntInput(const std::string& prompt); 
+    static double getDoubleInput(const std::string& prompt);
 };
 
 #endif
