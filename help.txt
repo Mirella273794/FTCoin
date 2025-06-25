@@ -12,6 +12,9 @@ FTCoin Wallet System
    - Register Sale: Remove FTCoins from a wallet
    - List Movements: Show all transactions for a wallet
 
-3. Help: Show this information
+3. Oracle:
+   - Quote: Shows the quote for a specific date
 
-4. Exit: Close the program
+4. Help: Show this information
+
+5. Exit: Close the program
