@@ -17,8 +17,6 @@ private:
     std::vector<Wallet*> wallets;
     AbstractMovementDAO* movementDAO;
     
-    // Métodos de carteira
-    
     void showMainMenu();
     void showWalletMenu();
     void showHelp();
@@ -27,13 +25,12 @@ private:
     void deleteWallet();
     void listWallets();
     
-    // Métodos de movimentação
     void showMovementMenu();
     void registerPurchase();
     void registerSale();
     void listMovements();
     double calculateBalance(int walletId);
-    
+
 public:
     Controller(DataBaseSelector dataBaseSelector = DataBaseSelector::MEMORY);
     ~Controller();
