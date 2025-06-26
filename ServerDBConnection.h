@@ -17,7 +17,7 @@ private:
 
 public:
     // O construtor estabelece a conexão
-    ServerDBConnection(const std::string& url, const std::string& user, const std::string& password, const std::string& schema);
+    ServerDBConnection(); 
     
     // O destrutor fecha a conexão
     virtual ~ServerDBConnection();
