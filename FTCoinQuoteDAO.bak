@@ -1,0 +1,30 @@
+// Este eh o .hpp
+#ifndef FTCOINQUOTEDAO_H
+#define FTCOINQUOTEDAO_H
+
+#include <optional>
+#include <cstdint>
+
+#include <string>
+#include <stdexcept>
+#include <mariadb/conncpp.hpp>
+
+class FTCoinQuoteDAO {
+public:
+    FTCoinQuoteDAO(const std::string& host, const std::string& port, 
+                   const std::string& user, const std::string& password, 
+                   const std::string& database);
+    ~FTCoinQuoteDAO();
+
+    bool checkExistence(const std::string& date);
+    void saveQuote(const std::string& date, double quote);
+    double getQuoteByDate(const std::string& date);
+    std::optional<double> getPreviousQuote(const std::string& date);
+    std::optional<double> getNextQuote(const std::string& date);
+
+private:
+    sql::Driver* driver;
+    std::unique_ptr<sql::Connection> conn;
+};
+
+#endif // FTCOINQUOTEDAO_H

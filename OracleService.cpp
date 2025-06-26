@@ -1,55 +1,24 @@
+// Arquivo: OracleService.cpp (VERSÃO CORRIGIDA PARA C++11 e SIMULAÇÃO)
 #include "OracleService.hpp"
-#include <random>
-#include <stdexcept>
-#include <iostream>
-#include <cmath>
-using namespace std;
+#include <cstdlib> // para rand()
+#include <ctime>   // para time()
 
-OracleService::OracleService(FTCoinQuoteDAO& dao) : dao(dao) {}
+OracleService::OracleService() {
+    // Inicializa o gerador de números aleatórios
+    srand(time(NULL));
+}
 
 double OracleService::generateRandomQuote() {
-    static mt19937 rng(random_device{}());
-    uniform_real_distribution<double> dist(2.0, 6.0);
-    return dist(rng);
+    // Gera um número aleatório para a cotação, por exemplo, entre 30000 e 70000
+    return 30000.0 + static_cast<double>(rand()) / (static_cast<double>(RAND_MAX / (70000.0 - 30000.0)));
 }
 
-double OracleService::generateSmartQuote(const string& date) {
-    auto prevQuote = dao.getPreviousQuote(date);
-    auto nextQuote = dao.getNextQuote(date);
-
-    if (prevQuote || nextQuote) {
-        double baseValue = 0.0;
-        int count = 0;
-
-        if (prevQuote) { baseValue += *prevQuote; count++; }
-        if (nextQuote) { baseValue += *nextQuote; count++; }
-
-        baseValue /= count;
-
-        static mt19937 rng(random_device{}());
-        uniform_real_distribution<double> noiseDist(-0.05, 0.05);
-        double noise = noiseDist(rng);
-        
-        return baseValue * (1.0 + noise);
+double OracleService::getOrCreateQuote(const std::string& date) {
+    // Verifica se a cotação para esta data já existe no nosso mapa
+    if (quoteHistory.find(date) == quoteHistory.end()) {
+        // Se não existe, gera uma nova cotação, guarda no histórico e a retorna
+        quoteHistory[date] = generateRandomQuote();
     }
-    return generateRandomQuote();
-}
-
-double OracleService::getOrCreateQuote(const string& date) {
-        if (date.empty()) {
-        throw invalid_argument("Date cannot be empty");
-    }
-
-    try {
-        if (dao.checkExistence(date)) {
-            return dao.getQuoteByDate(date);
-        } else {
-            double quote = generateSmartQuote(date);
-            dao.saveQuote(date, quote);
-            return quote;
-        }
-    } catch (const exception& e) {
-        cerr << "Failed to get/create quote: " << e.what() << endl;
-        throw;
-    }
+    // Se já existe, apenas a retorna
+    return quoteHistory[date];
 }

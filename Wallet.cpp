@@ -1,5 +1,7 @@
 #include "Wallet.h"
 
+using namespace std;
+
 const string Wallet::coin = "FTCoin";
 
 Wallet::Wallet(int id, const string& owner, const string& broker)

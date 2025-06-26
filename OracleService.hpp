@@ -1,22 +1,23 @@
+// Arquivo: OracleService.hpp (VERSÃO CORRIGIDA PARA C++11 e SIMULAÇÃO)
 #ifndef ORACLE_SERVICE_H
 #define ORACLE_SERVICE_H
 
-#include "FTCoinQuoteDAO.hpp"
 #include <string>
-#include <optional>
-using namespace std;
+#include <map> // Usaremos um mapa para simular o banco de dados
 
 class OracleService {
 private:
-    FTCoinQuoteDAO& dao;
+    // Um mapa para guardar as cotações: a chave é a data (string), o valor é a cotação (double)
+    std::map<std::string, double> quoteHistory;
 
+    // Gera uma cotação aleatória para simular o mercado
     double generateRandomQuote();
 
-    double generateSmartQuote(const string& date);
-
 public:
-    OracleService(FTCoinQuoteDAO& dao);
-    double getOrCreateQuote(const string& date);
+    OracleService(); // Construtor não precisa mais de um DAO
+
+    // Retorna a cotação para uma data. Se não existir, cria uma, guarda e retorna.
+    double getOrCreateQuote(const std::string& date);
 };
 
 #endif

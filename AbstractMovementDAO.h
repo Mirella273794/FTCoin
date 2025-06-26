@@ -15,4 +15,4 @@ public:
     virtual int getNextMovementId() = 0;
 };
 
-#endif 
+#endif
