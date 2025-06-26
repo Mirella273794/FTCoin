@@ -4,17 +4,20 @@
 #include <vector>
 #include <string>
 #include "Wallet.h"
+#include "AbstractWalletDAO.h" 
 #include "AbstractMovementDAO.h"
 #include "Menu.h"
 
 class Menu; 
 class TextFromFile;
 
+using namespace std;
+
 enum class DataBaseSelector { MEMORY, MARIADB };
 
 class Controller {
 private:
-    std::vector<Wallet*> wallets;
+    AbstractWalletDAO* walletDAO;
     AbstractMovementDAO* movementDAO;
     
     void showMainMenu();
