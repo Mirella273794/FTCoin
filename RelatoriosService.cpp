@@ -6,55 +6,54 @@
 #include <chrono>
 #include <ctime>
 
-// Construtor
-RelatoriosService::RelatoriosService(const std::vector<Wallet*>& wallets, AbstractMovementDAO* movementDAO, OracleService* oracleService)
+using namespace std;
+
+RelatoriosService::RelatoriosService(const vector<Wallet*>& wallets, AbstractMovementDAO* movementDAO, OracleService* oracleService)
     : wallets(wallets), movementDAO(movementDAO), oracleService(oracleService) {}
 
-std::string RelatoriosService::_getTodayDateString() {
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+string RelatoriosService::_getTodayDateString() {
+    auto now = chrono::system_clock::now();
+    time_t now_time = chrono::system_clock::to_time_t(now);
     char buffer[11];
-    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d", std::localtime(&now_time));
-    return std::string(buffer);
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d", localtime(&now_time));
+    return string(buffer);
 }
 
 
 // 1. Listar carteiras por ID
-void RelatoriosService::listarCarteirasPorId() {
-    std::cout << "\n--- Wallets Sorted by ID ---" << std::endl;
+void RelatoriosService::listWalletsById() {
+    cout << "\n--- Wallets Sorted by ID ---" << endl;
     auto sortedWallets = this->wallets;
 
-    std::sort(sortedWallets.begin(), sortedWallets.end(), [](const Wallet* a, const Wallet* b) {
+    sort(sortedWallets.begin(), sortedWallets.end(), [](const Wallet* a, const Wallet* b) {
         return a->getId() < b->getId();
     });
 
     for (const auto& wallet : sortedWallets) {
-        std::cout << "ID: " << wallet->getId() 
+        cout << "ID: " << wallet->getId() 
                   << " | Owner: " << wallet->getOwner() 
-                  << " | Broker: " << wallet->getBroker() << std::endl;
+                  << " | Broker: " << wallet->getBroker() << endl;
     }
-    std::cout << "----------------------------------" << std::endl;
+    cout << "----------------------------------" << endl;
 }
 
-// 2. Listar carteiras por Nome do Titular
-void RelatoriosService::listarCarteirasPorNome() {
-    std::cout << "\n--- Wallets Sorted by Owner Name ---" << std::endl;
+void RelatoriosService::listWalletsByOwnerName() {
+    cout << "\n--- Wallets Sorted by Owner Name ---" << endl;
     auto sortedWallets = this->wallets;
 
-    std::sort(sortedWallets.begin(), sortedWallets.end(), [](const Wallet* a, const Wallet* b) {
+    sort(sortedWallets.begin(), sortedWallets.end(), [](const Wallet* a, const Wallet* b) {
         return a->getOwner() < b->getOwner();
     });
 
     for (const auto& wallet : sortedWallets) {
-        std::cout << "Owner: " << wallet->getOwner() 
+        cout << "Owner: " << wallet->getOwner() 
                   << " | ID: " << wallet->getId() 
-                  << " | Broker: " << wallet->getBroker() << std::endl;
+                  << " | Broker: " << wallet->getBroker() << endl;
     }
-    std::cout << "------------------------------------------" << std::endl;
+    cout << "------------------------------------------" << endl;
 }
 
-// 3. Exibir saldo atual de uma carteira
-void RelatoriosService::exibirSaldoAtual() {
+void RelatoriosService::displayCurrentBalance() {
     int idCarteira = Utils::getIntInput("\nEnter wallet ID to display balance: ");
     auto movimentacoes = movementDAO->getMovementsByWallet(idCarteira);
     double saldo = 0.0;
@@ -63,48 +62,48 @@ void RelatoriosService::exibirSaldoAtual() {
         else if (mov.getType() == 'V') saldo -= mov.getAmount();
     }
     
-    std::cout << std::fixed << std::setprecision(8);
-    std::cout << ">>> Current balance for wallet " << idCarteira << ": " << saldo << " " << Wallet(0, "", "").getCoin() << std::endl;
+    cout << fixed << setprecision(2);
+    cout << ">>> Current balance for wallet " << idCarteira << ": " << saldo << " " << Wallet(0, "", "").getCoin() << endl;
 }
 
 // 4. Historico de movimentações
-void RelatoriosService::exibirHistoricoMovimentacao() {
+void RelatoriosService::displayTransactionHistory() {
     int idCarteira = Utils::getIntInput("\nEnter wallet ID to display history: ");
     auto movimentacoes = movementDAO->getMovementsByWallet(idCarteira);
     if (movimentacoes.empty()) {
-        Utils::printMessage("No movements found for wallet ID " + std::to_string(idCarteira));
+        Utils::printMessage("No movements found for wallet ID " + to_string(idCarteira));
         return;
     }
     
-    std::cout << "\n--- History for Wallet " << idCarteira << " ---" << std::endl;
-    std::cout << std::fixed << std::setprecision(8);
+    cout << "\n--- History for Wallet " << idCarteira << " ---" << endl;
+    cout << fixed << setprecision(2);
     for (const auto& mov : movimentacoes) {
-        std::cout << "Date: " << mov.getDate().getIsoFormat()
-                  << " | Type: " << mov.getType()
-                  << " | Amount: " << mov.getAmount() << std::endl;
+        cout << "Date: " << mov.getDate().getIsoFormat()
+            << " | Type: " << mov.getType()
+            << " | Amount: " << mov.getAmount() << endl;
     }
-    std::cout << "--------------------------------" << std::endl;
+    cout << "--------------------------------" << endl;
 }
 
 // 5. Ganho/Perda
-void RelatoriosService::apresentarGanhoPerda() {
-    std::cout << "\n--- Profit/Loss Report ---" << std::endl;
+void RelatoriosService::presentProfitLoss() {
+    cout << "\n--- Profit/Loss Report ---" << endl;
     if (this->oracleService == nullptr) {
         Utils::printMessage("Oracle Service not available to calculate profit/loss.");
         return;
     }
 
-    std::string today = _getTodayDateString();
+    string today = _getTodayDateString();
     double cotacaoAtual = oracleService->getOrCreateQuote(today);
 
-    std::cout << std::fixed << std::setprecision(2);
+    cout << fixed << setprecision(2);
 
     for (const auto& carteira : this->wallets) {
         auto movimentacoes = movementDAO->getMovementsByWallet(carteira->getId());
         double totalInvestido = 0.0, totalVendido = 0.0, saldoMoedas = 0.0;
 
         for (const auto& mov : movimentacoes) {
-            std::string dataMovimento = mov.getDate().getIsoFormat();
+            string dataMovimento = mov.getDate().getIsoFormat();
             double cotacaoDoDia = oracleService->getOrCreateQuote(dataMovimento);
 
             if (mov.getType() == 'C') {
@@ -119,13 +118,13 @@ void RelatoriosService::apresentarGanhoPerda() {
         double valorAtualEmCarteira = saldoMoedas * cotacaoAtual;
         double lucroPrejuizo = (totalVendido + valorAtualEmCarteira) - totalInvestido;
 
-        std::cout << "\nWallet ID: " << carteira->getId() << " (" << carteira->getOwner() << ")" << std::endl;
-        std::cout << "  - RESULT: ";
+        cout << "\nWallet ID: " << carteira->getId() << " (" << carteira->getOwner() << ")" << endl;
+        cout << "  - RESULT: ";
         if (lucroPrejuizo >= 0) {
-            std::cout << "[PROFIT] of R$ " << lucroPrejuizo << std::endl;
+            cout << "[PROFIT] of R$ " << lucroPrejuizo << endl;
         } else {
-            std::cout << "[LOSS] of R$ " << -lucroPrejuizo << std::endl;
+            cout << "[LOSS] of R$ " << -lucroPrejuizo << endl;
         }
     }
-    std::cout << "------------------------------------" << std::endl;
+    cout << "------------------------------------" << endl;
 }

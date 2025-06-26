@@ -1,13 +1,22 @@
-// Arquivo: Controller.h (VERSÃO CORRIGIDA E LIMPA)
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
 #include <vector>
 #include <string>
 #include "Wallet.h"
-#include "AbstractMovementDAO.h"
 #include "Menu.h"
-#include "OracleService.hpp" // Dependência do OracleService continua
+
+#include "AbstractWalletDAO.h" 
+#include "AbstractMovementDAO.h"
+#include "WalletDBDAO.h"
+#include "MovementDBDAO.h"
+#include "WalletMemDAO.h"
+#include "MovementMemDAO.h"
+#include "FTCoinQuoteDAO.hpp"
+
+#include "ServerDBConnection.h" 
+#include "FTCoinMemoryDB.h"  
+#include "OracleService.hpp"
 #include "RelatoriosService.hpp" 
 
 class Menu; 
@@ -17,13 +26,21 @@ enum class DataBaseSelector { MEMORY, MARIADB };
 
 class Controller {
 private:
-    std::vector<Wallet*> wallets;
-    AbstractMovementDAO* movementDAO;
-    OracleService* oracleService; // O OracleService continua aqui
+    AbstractWalletDAO* walletDAO = nullptr;
+    AbstractMovementDAO* movementDAO = nullptr;
+    OracleService* oracleService = nullptr; 
+    FTCoinQuoteDAO* quoteDAO = nullptr; 
+    RelatoriosService* reportsService = nullptr;
 
+    ServerDBConnection* dbConnection = nullptr;
+    DataBaseSelector dbSelector; 
+    
+    void showHelpMenu();    
+    void showProgramGuide();  
+    void showAbout();  
+    
     void showMainMenu();
     void showWalletMenu();
-    void showReportsMenu();
     void showHelp();
     void createWallet();
     void editWallet();
@@ -36,8 +53,12 @@ private:
     void listMovements();
     double calculateBalance(int walletId);
 
+    void runOracle();
+
+    void showReportsMenu();
+
 public:
-    Controller(DataBaseSelector dataBaseSelector = DataBaseSelector::MEMORY);
+    Controller(DataBaseSelector dataBaseSelector);
     ~Controller();
     void start();
 };

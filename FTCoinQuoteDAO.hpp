@@ -4,6 +4,7 @@
 #include <string>
 #include <stdexcept>
 #include <mariadb/conncpp.hpp>
+#include <optional>
 using namespace std;
 
 class FTCoinQuoteDAO {

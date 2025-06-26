@@ -1,5 +1,7 @@
 #include "MovementMemDAO.h"
 
+using namespace std;
+
 MovementMemDAO::MovementMemDAO() : lastMovementId(0) {}
 
 void MovementMemDAO::addMovement(const Movement& movement) {
@@ -9,7 +11,7 @@ void MovementMemDAO::addMovement(const Movement& movement) {
     }
 }
 
-std::vector<Movement> MovementMemDAO::getMovementsByWallet(int walletId) {
+vector<Movement> MovementMemDAO::getMovementsByWallet(int walletId) {
     if (movements.find(walletId) != movements.end()) {
         return movements[walletId];
     }

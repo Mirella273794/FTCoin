@@ -1,70 +1,80 @@
 #include "Controller.h"
 #include "Utils.h"
 #include "MovementMemDAO.h"
+#include "WalletMemDAO.h"
 #include "Menu.h"
 #include "TextFromFile.h" 
+#include "Sysinfo.h"
 #include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <ctime> 
 
 using namespace std;
 
+Controller::Controller(DataBaseSelector dataBaseSelector) : dbSelector(dataBaseSelector) {
+    if (dataBaseSelector == DataBaseSelector::MARIADB) {
+        dbConnection = new ServerDBConnection();
+        walletDAO = new WalletDBDAO(dbConnection);
+        movementDAO = new MovementDBDAO(dbConnection);
+        quoteDAO = new FTCoinQuoteDAO("143.106.243.64", "3306", "PooI_25_B05", "blwltAO53Y", "PooI_25_B05");
+        oracleService = new OracleService(*quoteDAO);
 
-Controller::Controller(DataBaseSelector dataBaseSelector) {
-    movementDAO = new MovementMemDAO();
-    oracleService = new OracleService(); // Agora cria o nosso OracleService em memória
+    } else {
+        walletDAO = new WalletMemDAO(); 
+        movementDAO = new MovementMemDAO();
+        oracleService = nullptr;
+    }
 }
 
 void Controller::start() {
     showMainMenu();
 }
 
-
 void Controller::showMainMenu() {
-
-    Menu menu({"Wallets",  "Movements", "Reports", "Help", "Exit"}, "Main Menu");
+    Menu menu({"Wallets",  "Movements", "Oracle", "Reports", "Help", "Exit"}, "Main Menu");
     
     while (true) {
         int choice = menu.getChoice();
         switch (choice) {
             case 1: showWalletMenu(); break;
             case 2: showMovementMenu(); break;
-            case 3: showReportsMenu(); break; 
-            case 4: showHelp(); break;
-            case 5: return;
-        }
-    }
-}
-
-void Controller::showReportsMenu() {
-
-    RelatoriosService relatoriosService(this->wallets, this->movementDAO, this->oracleService);
-
-    vector<string> menuItems = {
-        "List Wallets by ID",
-        "List Wallets by Name",
-        "Display Wallet Balance",
-        "Display Wallet History",
-        "Show Total Profit/Loss",
-        "Return"
-    };
-    Menu reportsMenu(menuItems, "Reports Menu");
-
-    while (true) {
-        int choice = reportsMenu.getChoice();
-        switch (choice) {
-            case 1: relatoriosService.listarCarteirasPorId(); break;
-            case 2: relatoriosService.listarCarteirasPorNome(); break;
-            case 3: relatoriosService.exibirSaldoAtual(); break;
-            case 4: relatoriosService.exibirHistoricoMovimentacao(); break;
-            case 5: relatoriosService.apresentarGanhoPerda(); break;
+            case 3: runOracle(); break;
+            case 4: showReportsMenu(); break;
+            case 5: showHelpMenu(); break;
             case 6: return;
         }
     }
 }
 
+void Controller::showHelpMenu() {
+    Menu helpMenu({"Program Guide", "About", "Return"}, "Help Menu");
 
-void Controller::showHelp() {
+    while (true) {
+        int choice = helpMenu.getChoice();
+        switch (choice) {
+            case 1: showProgramGuide(); break;
+            case 2: showAbout(); break;
+            case 3: return; 
+        }
+    }
+}
+
+void Controller::showProgramGuide() {
     TextFromFile helpText("help.txt");
     Utils::printMessage(helpText.getFileContent());
+}
+
+void Controller::showAbout() {
+    time_t now = time(0);
+    char* dt = ctime(&now);
+
+    cout << "\n--- About FTCoin Wallet System ---" << endl;
+    cout << "Version: " << SysInfo::getVersion() << endl;
+    cout << "Authors: " << SysInfo::getAuthor() << endl;
+    cout << "Copyright (c) 2025" << endl;
+    cout << "Date: " << dt;
+    cout << "--------------------------------" << endl;
 }
 
 void Controller::showWalletMenu() {
@@ -91,13 +101,15 @@ void Controller::createWallet() {
         return;
     }
 
-    int id = wallets.size() + 1;
-    wallets.push_back(new Wallet(id, owner, broker));
+    int id = walletDAO->getNextId();
+    Wallet* wallet = new Wallet(id, owner, broker);
+    walletDAO->addWallet(wallet);
 
     Utils::printMessage("Wallet created with ID: " + to_string(id));
 }
 
 void Controller::editWallet() {
+    auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
         Utils::printMessage("No wallet registered for Edit.");
         return;
@@ -106,27 +118,28 @@ void Controller::editWallet() {
     listWallets();
     int id = Utils::getIntInput("Wallet ID for Edit: ");
     
-    for (auto& wallet : wallets) {
-        if (wallet->getId() == id) {
-            string newOwner = Utils::getInput("New owner [" + wallet->getOwner() + "]: ");
-            string newBroker = Utils::getInput("New broker [" + wallet->getBroker() + "]: ");
+    Wallet* wallet = walletDAO->getWalletById(id);
+    if (wallet) {
+        string newOwner = Utils::getInput("New owner [" + wallet->getOwner() + "]: ");
+        string newBroker = Utils::getInput("New broker [" + wallet->getBroker() + "]: ");
             
-            if (newOwner.empty() || newBroker.empty()) {
-                Utils::printMessage("Attention, all fields must be filled in.");
-                return;
-            }
-            
-            wallet->setOwner(newOwner);
-            wallet->setBroker(newBroker);
-            
-            Utils::printMessage("Wallet updated successfully!");
+        if (newOwner.empty() || newBroker.empty()) {
+            Utils::printMessage("Attention, all fields must be filled in.");
             return;
         }
+            
+        wallet->setOwner(newOwner);
+        wallet->setBroker(newBroker);
+        walletDAO->updateWallet(wallet);
+        
+        Utils::printMessage("Wallet updated successfully!");
+    } else {
+        Utils::printMessage("Wallet not found!");
     }
-    Utils::printMessage("Wallet not found!");
 }
 
 void Controller::deleteWallet() {
+    auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
         Utils::printMessage("No wallet registered for Delete.");
         return;
@@ -135,25 +148,24 @@ void Controller::deleteWallet() {
     listWallets();
     int id = Utils::getIntInput("Wallet ID for Delete: ");
     
-    for (auto it = wallets.begin(); it != wallets.end(); ++it) {
-        if ((*it)->getId() == id) {
-
-            string confirm = Utils::getInput("Are you sure you want to Delete? (Y/N): ");
-            if (toupper(confirm[0]) != 'Y') {
-                Utils::printMessage("Operation cancelled.");
-                return;
-            }
-
-            delete *it;
-            wallets.erase(it);
-            Utils::printMessage("Wallet deleted");
+        string confirm = Utils::getInput("Are you sure you want to Delete? (Y/N): ");
+        if (toupper(confirm[0]) != 'Y') {
+            Utils::printMessage("Operation cancelled.");
             return;
         }
+
+    if (walletDAO->getWalletById(id)) {
+        movementDAO->deleteMovementsByWallet(id);
+        walletDAO->deleteWallet(id);
+
+        Utils::printMessage("Wallet deleted successfully!");
+    } else {
+        Utils::printMessage("Wallet not found!");
     }
-    Utils::printMessage("Wallet not found");
 }
 
 void Controller::listWallets() {
+    auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
         Utils::printMessage("No wallet registered.");
         return;
@@ -163,7 +175,8 @@ void Controller::listWallets() {
         Utils::printMessage(
             "ID: " + to_string(wallet->getId()) +
             " | Owner: " + wallet->getOwner() +
-            " | Broker: " + wallet->getBroker()
+            " | Broker: " + wallet->getBroker() +
+            " | Coin: " + wallet->getCoin()
         );
     }
 }
@@ -183,6 +196,7 @@ void Controller::showMovementMenu() {
 }
 
 void Controller::registerPurchase() {
+    auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
         Utils::printMessage("No wallets registered. Please create a wallet first.");
         return;
@@ -190,11 +204,14 @@ void Controller::registerPurchase() {
     
     listWallets();
     int walletId = Utils::getIntInput("Wallet ID: ");
+
+    if (!walletDAO->getWalletById(walletId)) {
+    Utils::printMessage("Invalid wallet ID!");
+    return; 
+    }
     
-    Date date;
-    cout << "Date (DD.MM.YYYY): ";
-    cin >> date;
-    cin.ignore();
+    string dateStr = Utils::getInput("Enter the date (format: YYYY-MM-DD): ");
+    Date date(dateStr);
     
     double amount = Utils::getDoubleInput("Amount to purchase: ");
     
@@ -211,6 +228,7 @@ void Controller::registerPurchase() {
 }
 
 void Controller::registerSale() {
+    auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
         Utils::printMessage("No wallets registered. Please create a wallet first.");
         return;
@@ -218,17 +236,25 @@ void Controller::registerSale() {
     
     listWallets();
     int walletId = Utils::getIntInput("Wallet ID: ");
+
+    if (!walletDAO->getWalletById(walletId)) {
+        Utils::printMessage("Invalid wallet ID!");
+        return;
+    }
+
     double balance = calculateBalance(walletId);
-    
+
     if (balance <= 0) {
         Utils::printMessage("Insufficient balance for sale!");
         return;
     }
+
+    stringstream stream;
+    stream << fixed << setprecision(2) << balance;
+    string formattedBalance = stream.str();
     
-    Date date;
-    cout << "Date (DD.MM.YYYY): ";
-    cin >> date;
-    cin.ignore();
+    string dateStr = Utils::getInput("Enter the date (format: YYYY-MM-DD): ");
+    Date date(dateStr);
     
     double amount = Utils::getDoubleInput("Amount to sell (max " + to_string(balance) + "): ");
     
@@ -245,6 +271,7 @@ void Controller::registerSale() {
 }
 
 void Controller::listMovements() {
+    auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
         Utils::printMessage("No wallets registered.");
         return;
@@ -262,16 +289,14 @@ void Controller::listMovements() {
     Utils::printMessage("=== Movements for Wallet ID: " + to_string(walletId) + " ===");
     for (const auto& movement : movements) {
         string typeStr = (movement.getType() == 'C') ? "Purchase" : "Sale";
-        Utils::printMessage(
-            "ID: " + to_string(movement.getMovementId()) +
-            " | Date: " + movement.getDate().getIsoFormat() +
-            " | Type: " + typeStr +
-            " | Amount: " + to_string(movement.getAmount())
-        );
+        cout << "ID: " << movement.getMovementId()
+                  << " | Date: " << movement.getDate().getIsoFormat()
+                  << " | Type: " << typeStr
+                  << " | Amount: " << fixed << setprecision(2) << movement.getAmount() << endl;
     }
     
     double balance = calculateBalance(walletId);
-    Utils::printMessage("Current balance: " + to_string(balance));
+    cout << "Current balance: " << fixed << setprecision(2) << balance << endl;
 }
 
 double Controller::calculateBalance(int walletId) {
@@ -289,10 +314,86 @@ double Controller::calculateBalance(int walletId) {
     return balance;
 }
 
-Controller::~Controller() {
-    for (auto wallet : wallets) {
-        delete wallet;
+void Controller::runOracle() {
+    if (dbSelector != DataBaseSelector::MARIADB) {
+        Utils::printMessage("Oracle is only available in MariaDB (database) mode.");
+        return;
     }
+
+    const string GREEN = "\033[32m";
+    const string RESET = "\033[0m";
+    string date;
+
+    cout << "\n=== FTCoin Quote Oracle ===" << endl;
+    cout << "Enter a date (format: YYYY-MM-DD) or type 'exit' to return:" << endl;
+
+    while (true) {
+        cout << "> ";
+        getline(cin, date);
+
+        if (date == "exit") {
+            break;
+        }
+
+        try {
+            double quote = oracleService->getOrCreateQuote(date);
+
+            cout << "Quote for " << date << ": "
+                 << GREEN
+                 << "R$ " << fixed << setprecision(2) << quote
+                 << RESET
+                 << endl;
+        } catch (const exception& e) {
+            cerr << "Error: " << e.what() << endl;
+        }
+    }
+}
+
+void Controller::showReportsMenu() {
+    vector<string> menuItems = {
+        "List wallets by ID",
+        "List wallets by owner name",
+        "Display wallet balance",
+        "Display wallet transaction history",
+        "Display profit/loss report",
+        "Return"
+    };
+    Menu reportsMenu(menuItems, "Reports Menu");
+
+    auto wallets = walletDAO->getAllWallets();
+    if (wallets.empty()) {
+        Utils::printMessage("No wallets registered to generate reports.");
+        return;
+    }
+
+    RelatoriosService reportsService(wallets, movementDAO, oracleService);
+
+    while (true) {
+        int choice = reportsMenu.getChoice();
+        switch (choice) {
+            case 1: reportsService.listWalletsById(); break;
+            case 2: reportsService.listWalletsByOwnerName(); break;
+            case 3: reportsService.displayCurrentBalance(); break;
+            case 4: reportsService.displayTransactionHistory(); break;
+            case 5: reportsService.presentProfitLoss(); break;
+            case 6: return;
+        }
+    }
+}
+
+Controller::~Controller() {
+    delete walletDAO;
     delete movementDAO;
-    delete oracleService; 
+    if (dbConnection) {
+        delete dbConnection;
+    }
+     if (quoteDAO) {
+        delete quoteDAO;
+    }
+    if (oracleService) {
+        delete oracleService;
+    }
+    if (reportsService) {
+        delete reportsService;
+    }
 }

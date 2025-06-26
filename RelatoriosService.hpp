@@ -19,11 +19,11 @@ private:
 public:
     RelatoriosService(const std::vector<Wallet*>& wallets, AbstractMovementDAO* movementDAO, OracleService* oracleService);
 
-    void listarCarteirasPorId();
-    void listarCarteirasPorNome();
-    void exibirSaldoAtual();
-    void exibirHistoricoMovimentacao();
-    void apresentarGanhoPerda();
+    void listWalletsById();
+    void listWalletsByOwnerName();
+    void displayCurrentBalance();
+    void displayTransactionHistory();
+    void presentProfitLoss();
 };
 
 #endif 

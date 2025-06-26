@@ -7,7 +7,7 @@
 #define SERVERDBCONNECTION_H_
 
 // Includes do MariaDB Connector/C++
-#include <mysql/jdbc.h>
+#include <mariadb/conncpp.hpp> 
 #include <string>
 
 class ServerDBConnection {

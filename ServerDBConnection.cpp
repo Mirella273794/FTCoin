@@ -4,6 +4,8 @@
 
 #include "ServerDBConnection.h"
 #include <iostream>
+#include <string>
+#include <cctype> 
 
 // Implementação do Construtor com os dados de acesso fornecidos
 ServerDBConnection::ServerDBConnection() {
@@ -17,7 +19,7 @@ ServerDBConnection::ServerDBConnection() {
     const std::string schema = "PooI_25_B05";
 
     try {
-        driver = sql::mysql::get_driver_instance();
+        driver = sql::mariadb::get_driver_instance();
         
         // Usa as constantes com seus dados para conectar
         connection = driver->connect(url, user, password);

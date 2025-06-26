@@ -22,7 +22,7 @@ FTCoinQuoteDAO::~FTCoinQuoteDAO() {
 bool FTCoinQuoteDAO::checkExistence(const string& date) {
     try {
         unique_ptr<sql::PreparedStatement> pstmt(
-            conn->prepareStatement("SELECT 1 FROM Oraculo WHERE Data = ?"));
+            conn->prepareStatement("SELECT 1 FROM ORACULO WHERE Data = ?"));
         pstmt->setString(1, date);
         unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
         return res->next();
@@ -35,7 +35,7 @@ bool FTCoinQuoteDAO::checkExistence(const string& date) {
 optional<double> FTCoinQuoteDAO::getPreviousQuote(const string& date) {
     try {
         unique_ptr<sql::PreparedStatement> pstmt(
-            conn->prepareStatement("SELECT Cotacao FROM Oraculo WHERE Data < ? ORDER BY Data DESC LIMIT 1")
+            conn->prepareStatement("SELECT Cotacao FROM ORACULO WHERE Data < ? ORDER BY Data DESC LIMIT 1")
         );
         pstmt->setString(1, date);
         unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
@@ -49,7 +49,7 @@ optional<double> FTCoinQuoteDAO::getPreviousQuote(const string& date) {
 optional<double> FTCoinQuoteDAO::getNextQuote(const string& date) {
     try {
         unique_ptr<sql::PreparedStatement> pstmt(
-            conn->prepareStatement("SELECT Cotacao FROM Oraculo WHERE Data > ? ORDER BY Data ASC LIMIT 1")
+            conn->prepareStatement("SELECT Cotacao FROM ORACULO WHERE Data > ? ORDER BY Data ASC LIMIT 1")
         );
         pstmt->setString(1, date);
         unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
@@ -66,7 +66,7 @@ void FTCoinQuoteDAO::saveQuote(const string& date, double quote) {
 
     try {
         unique_ptr<sql::PreparedStatement> pstmt(
-            conn->prepareStatement("REPLACE INTO Oraculo (Data, Cotacao) VALUES (?, ?)"));
+            conn->prepareStatement("REPLACE INTO ORACULO (Data, Cotacao) VALUES (?, ?)"));
         pstmt->setString(1, date);
         pstmt->setDouble(2, quote);
         pstmt->execute();
@@ -79,7 +79,7 @@ void FTCoinQuoteDAO::saveQuote(const string& date, double quote) {
 double FTCoinQuoteDAO::getQuoteByDate(const string& date) {
     try {
         unique_ptr<sql::PreparedStatement> pstmt(
-            conn->prepareStatement("SELECT Cotacao FROM Oraculo WHERE Data = ?"));
+            conn->prepareStatement("SELECT Cotacao FROM ORACULO WHERE Data = ?"));
         pstmt->setString(1, date);
 
         unique_ptr<sql::ResultSet> res(pstmt->executeQuery());

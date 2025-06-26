@@ -15,6 +15,13 @@ FTCoin Wallet System
 3. Oracle:
    - Quote: Shows the quote for a specific date
 
-4. Help: Show this information
+4. Reports:
+   - List wallets by ID: Shows all wallets sorted by their ID
+   - List wallets by owner name: Shows all wallets sorted alphabetically by the owner's name
+   - Display wallet balance: Shows the current coin balance for a specific wallet
+   - Display wallet transaction history: Lists all purchases and sales for a specific wallet
+   - Display profit/loss report: Calculates the total profit or loss for each wallet based on Oracle quotes
 
-5. Exit: Close the program
+5. Help: Show this information
+
+6. Exit: Close the program
