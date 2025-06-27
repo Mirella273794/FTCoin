@@ -11,6 +11,9 @@ public:
     static string getInput(const std::string& prompt);
     static int getIntInput(const std::string& prompt); 
     static double getDoubleInput(const std::string& prompt);
+
+    static void printSuccess(const std::string& message);
+    static void printError(const std::string& message);
 };
 
 #endif

@@ -97,7 +97,7 @@ void Controller::createWallet() {
     string broker = Utils::getInput("Broker: ");
 
     if (owner.empty() || broker.empty()) {
-        Utils::printMessage("Attention, all fields must be filled in.");
+        Utils::printError("Attention, all fields must be filled in.");
         return;
     }
 
@@ -105,13 +105,14 @@ void Controller::createWallet() {
     Wallet* wallet = new Wallet(id, owner, broker);
     walletDAO->addWallet(wallet);
 
+    Utils::printSuccess("Wallet created successfully!\n");
     Utils::printMessage("Wallet created with ID: " + to_string(id));
 }
 
 void Controller::editWallet() {
     auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
-        Utils::printMessage("No wallet registered for Edit.");
+        Utils::printError("No wallet registered for Edit.");
         return;
     }
 
@@ -124,7 +125,7 @@ void Controller::editWallet() {
         string newBroker = Utils::getInput("New broker [" + wallet->getBroker() + "]: ");
             
         if (newOwner.empty() || newBroker.empty()) {
-            Utils::printMessage("Attention, all fields must be filled in.");
+            Utils::printError("Attention, all fields must be filled in.");
             return;
         }
             
@@ -132,16 +133,16 @@ void Controller::editWallet() {
         wallet->setBroker(newBroker);
         walletDAO->updateWallet(wallet);
         
-        Utils::printMessage("Wallet updated successfully!");
+        Utils::printSuccess("Wallet updated successfully!");
     } else {
-        Utils::printMessage("Wallet not found!");
+        Utils::printError("Wallet not found!");
     }
 }
 
 void Controller::deleteWallet() {
     auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
-        Utils::printMessage("No wallet registered for Delete.");
+        Utils::printError("No wallet registered for Delete.");
         return;
     }
 
@@ -150,7 +151,7 @@ void Controller::deleteWallet() {
     
         string confirm = Utils::getInput("Are you sure you want to Delete? (Y/N): ");
         if (toupper(confirm[0]) != 'Y') {
-            Utils::printMessage("Operation cancelled.");
+            Utils::printError("Operation cancelled.");
             return;
         }
 
@@ -158,16 +159,16 @@ void Controller::deleteWallet() {
         movementDAO->deleteMovementsByWallet(id);
         walletDAO->deleteWallet(id);
 
-        Utils::printMessage("Wallet deleted successfully!");
+        Utils::printSuccess("Wallet deleted successfully!");
     } else {
-        Utils::printMessage("Wallet not found!");
+        Utils::printError("Wallet not found!");
     }
 }
 
 void Controller::listWallets() {
     auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
-        Utils::printMessage("No wallet registered.");
+        Utils::printError("No wallet registered.");
         return;
     }
     
@@ -198,7 +199,7 @@ void Controller::showMovementMenu() {
 void Controller::registerPurchase() {
     auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
-        Utils::printMessage("No wallets registered. Please create a wallet first.");
+        Utils::printError("No wallets registered. Please create a wallet first.");
         return;
     }
     
@@ -206,7 +207,7 @@ void Controller::registerPurchase() {
     int walletId = Utils::getIntInput("Wallet ID: ");
 
     if (!walletDAO->getWalletById(walletId)) {
-    Utils::printMessage("Invalid wallet ID!");
+    Utils::printError("Invalid wallet ID!");
     return; 
     }
     
@@ -216,7 +217,7 @@ void Controller::registerPurchase() {
     double amount = Utils::getDoubleInput("Amount to purchase: ");
     
     if (amount <= 0) {
-        Utils::printMessage("Amount must be positive!");
+        Utils::printError("Amount must be positive!");
         return;
     }
     
@@ -224,13 +225,14 @@ void Controller::registerPurchase() {
     Movement movement(walletId, movementId, date, 'C', amount);
     movementDAO->addMovement(movement);
     
-    Utils::printMessage("Purchase registered successfully with ID: " + to_string(movementId));
+    Utils::printSuccess("Purchase registered successfully");
+    Utils::printMessage("Purchase registered with ID: " + to_string(movementId));
 }
 
 void Controller::registerSale() {
     auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
-        Utils::printMessage("No wallets registered. Please create a wallet first.");
+        Utils::printError("No wallets registered. Please create a wallet first.");
         return;
     }
     
@@ -238,14 +240,14 @@ void Controller::registerSale() {
     int walletId = Utils::getIntInput("Wallet ID: ");
 
     if (!walletDAO->getWalletById(walletId)) {
-        Utils::printMessage("Invalid wallet ID!");
+        Utils::printError("Invalid wallet ID!");
         return;
     }
 
     double balance = calculateBalance(walletId);
 
     if (balance <= 0) {
-        Utils::printMessage("Insufficient balance for sale!");
+        Utils::printError("Insufficient balance for sale!");
         return;
     }
 
@@ -258,7 +260,7 @@ void Controller::registerSale() {
     
     double amount = Utils::getDoubleInput("Amount to sell (max " + formattedBalance + "): ");    
     if (amount <= 0 || amount > balance) {
-        Utils::printMessage("Invalid amount!");
+        Utils::printError("Invalid amount!");
         return;
     }
     
@@ -266,13 +268,14 @@ void Controller::registerSale() {
     Movement movement(walletId, movementId, date, 'V', amount);
     movementDAO->addMovement(movement);
     
-    Utils::printMessage("Sale registered successfully with ID: " + to_string(movementId));
+    Utils::printSuccess("Sale registered successfully\n");
+    Utils::printMessage("Sale registered with ID: " + to_string(movementId));
 }
 
 void Controller::listMovements() {
     auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
-        Utils::printMessage("No wallets registered.");
+        Utils::printError("No wallets registered.");
         return;
     }
     
@@ -281,7 +284,7 @@ void Controller::listMovements() {
     
     auto movements = movementDAO->getMovementsByWallet(walletId);
     if (movements.empty()) {
-        Utils::printMessage("No movements found for this wallet.");
+        Utils::printError("No movements found for this wallet.");
         return;
     }
     
@@ -295,7 +298,9 @@ void Controller::listMovements() {
     }
     
     double balance = calculateBalance(walletId);
-    cout << "Current balance: " << fixed << setprecision(2) << balance << endl;
+    const std::string CYAN = "\033[36m";
+    const std::string RESET = "\033[0m";
+    cout << "Current balance: " << CYAN << fixed << setprecision(2) << balance << RESET << endl;
 }
 
 double Controller::calculateBalance(int walletId) {
@@ -315,7 +320,7 @@ double Controller::calculateBalance(int walletId) {
 
 void Controller::runOracle() {
     if (dbSelector != DataBaseSelector::MARIADB) {
-        Utils::printMessage("Oracle is only available in MariaDB (database) mode.");
+        Utils::printError("Oracle is only available in MariaDB (database) mode.");
         return;
     }
 
@@ -343,7 +348,7 @@ void Controller::runOracle() {
                  << RESET
                  << endl;
         } catch (const exception& e) {
-            cerr << "Error: " << e.what() << endl;
+            Utils::printError(e.what());
         }
     }
 }
@@ -361,7 +366,7 @@ void Controller::showReportsMenu() {
 
     auto wallets = walletDAO->getAllWallets();
     if (wallets.empty()) {
-        Utils::printMessage("No wallets registered to generate reports.");
+        Utils::printError("No wallets registered to generate reports.");
         return;
     }
 

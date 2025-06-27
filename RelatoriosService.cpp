@@ -8,6 +8,10 @@
 
 using namespace std;
 
+const string GREEN = "\033[32m";
+const string RED = "\033[31m";
+const string RESET = "\033[0m";
+
 void RelatoriosService::_listWallets() {
     cout << "\n--- Available Wallets ---" << endl;
     if (wallets.empty()) {
@@ -85,16 +89,20 @@ void RelatoriosService::displayTransactionHistory() {
     int idCarteira = Utils::getIntInput("\nEnter wallet ID to display history: ");
     auto movimentacoes = movementDAO->getMovementsByWallet(idCarteira);
     if (movimentacoes.empty()) {
-        Utils::printMessage("No movements found for wallet ID " + to_string(idCarteira));
+        Utils::printError("No movements found for wallet ID " + to_string(idCarteira));
         return;
     }
     
     cout << "\n--- History for Wallet " << idCarteira << " ---" << endl;
     cout << fixed << setprecision(2);
     for (const auto& mov : movimentacoes) {
-        cout << "Date: " << mov.getDate().getIsoFormat()
-            << " | Type: " << mov.getType()
-            << " | Amount: " << mov.getAmount() << endl;
+        cout << "Date: " << mov.getDate().getIsoFormat() << " | Type: ";
+        if (mov.getType() == 'C') {
+            cout << GREEN << "C" << RESET;
+        } else {
+            cout << RED << "V" << RESET;
+        }
+        cout << " | Amount: " << mov.getAmount() << endl;
     }
     cout << "--------------------------------" << endl;
 }
@@ -102,10 +110,9 @@ void RelatoriosService::displayTransactionHistory() {
 void RelatoriosService::presentProfitLoss() {
     cout << "\n--- Profit/Loss Report ---" << endl;
     if (this->oracleService == nullptr) {
-        Utils::printMessage("Oracle Service not available to calculate profit/loss.");
+        Utils::printError("Oracle Service not available to calculate profit/loss.");
         return;
     }
-
     string today = _getTodayDateString();
     double cotacaoAtual = oracleService->getOrCreateQuote(today);
 
@@ -134,9 +141,9 @@ void RelatoriosService::presentProfitLoss() {
         cout << "\nWallet ID: " << carteira->getId() << " (" << carteira->getOwner() << ")" << endl;
         cout << "  - RESULT: ";
         if (lucroPrejuizo >= 0) {
-            cout << "[PROFIT] of R$ " << lucroPrejuizo << endl;
+            cout << GREEN << "[PROFIT]" << RESET << " of R$ " << lucroPrejuizo << endl;
         } else {
-            cout << "[LOSS] of R$ " << -lucroPrejuizo << endl;
+            cout << RED <<"[LOSS]" << RESET << " of R$ " << -lucroPrejuizo << endl;
         }
     }
     cout << "------------------------------------" << endl;

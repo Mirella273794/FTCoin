@@ -8,6 +8,18 @@ void Utils::printMessage(const string& message) {
    cout << message <<endl;
 }
 
+void Utils::printSuccess(const std::string& message) {
+    const std::string GREEN = "\033[32m";
+    const std::string RESET = "\033[0m";
+    cout << GREEN << message << RESET << endl;
+}
+
+void Utils::printError(const std::string& message) {
+    const std::string RED = "\033[31m";
+    const std::string RESET = "\033[0m";
+    cerr << RED << message << RESET << endl; // Usar cerr para erros é uma boa prática
+}
+
 string Utils::getInput(const string& prompt) {
    cout << prompt;
    string input;
