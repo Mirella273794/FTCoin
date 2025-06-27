@@ -20,7 +20,7 @@ int Utils::getIntInput(const string& prompt) {
     string input;
     while (true) {
         cout << prompt;
-        getline(cin, input); // Lê a linha inteira
+        getline(cin, input);
         try {
             value = stoi(input); // Tenta converter a string para inteiro
             return value;

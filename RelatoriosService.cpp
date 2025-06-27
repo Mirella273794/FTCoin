@@ -8,6 +8,20 @@
 
 using namespace std;
 
+void RelatoriosService::_listWallets() {
+    cout << "\n--- Available Wallets ---" << endl;
+    if (wallets.empty()) {
+        cout << "No wallets registered." << endl;
+        return;
+    }
+    for (const auto& wallet : wallets) {
+        cout << "ID: " << wallet->getId()
+                  << " | Owner: " << wallet->getOwner()
+                  << " | Broker: " << wallet->getBroker() << endl;
+    }
+    cout << "-------------------------" << endl;
+}
+
 RelatoriosService::RelatoriosService(const vector<Wallet*>& wallets, AbstractMovementDAO* movementDAO, OracleService* oracleService)
     : wallets(wallets), movementDAO(movementDAO), oracleService(oracleService) {}
 
@@ -20,7 +34,6 @@ string RelatoriosService::_getTodayDateString() {
 }
 
 
-// 1. Listar carteiras por ID
 void RelatoriosService::listWalletsById() {
     cout << "\n--- Wallets Sorted by ID ---" << endl;
     auto sortedWallets = this->wallets;
@@ -54,6 +67,7 @@ void RelatoriosService::listWalletsByOwnerName() {
 }
 
 void RelatoriosService::displayCurrentBalance() {
+    _listWallets();
     int idCarteira = Utils::getIntInput("\nEnter wallet ID to display balance: ");
     auto movimentacoes = movementDAO->getMovementsByWallet(idCarteira);
     double saldo = 0.0;
@@ -66,8 +80,8 @@ void RelatoriosService::displayCurrentBalance() {
     cout << ">>> Current balance for wallet " << idCarteira << ": " << saldo << " " << Wallet(0, "", "").getCoin() << endl;
 }
 
-// 4. Historico de movimentações
 void RelatoriosService::displayTransactionHistory() {
+    _listWallets();
     int idCarteira = Utils::getIntInput("\nEnter wallet ID to display history: ");
     auto movimentacoes = movementDAO->getMovementsByWallet(idCarteira);
     if (movimentacoes.empty()) {
@@ -85,7 +99,6 @@ void RelatoriosService::displayTransactionHistory() {
     cout << "--------------------------------" << endl;
 }
 
-// 5. Ganho/Perda
 void RelatoriosService::presentProfitLoss() {
     cout << "\n--- Profit/Loss Report ---" << endl;
     if (this->oracleService == nullptr) {

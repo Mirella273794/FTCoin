@@ -15,6 +15,7 @@ private:
     OracleService* oracleService;
 
     std::string _getTodayDateString();
+    void _listWallets();
 
 public:
     RelatoriosService(const std::vector<Wallet*>& wallets, AbstractMovementDAO* movementDAO, OracleService* oracleService);

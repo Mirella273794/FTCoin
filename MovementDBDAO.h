@@ -6,7 +6,7 @@
 #ifndef MOVEMENTDBDAO_H_
 #define MOVEMENTDBDAO_H_
 
-#include "AbstractMovementDAO.h" // A interface que estamos implementando
+#include "AbstractMovementDAO.h" 
 #include "ServerDBConnection.h"
 #include "Movement.h"
 
@@ -19,7 +19,6 @@ class MovementDBDAO final : public AbstractMovementDAO {
 private:
     ServerDBConnection* dbConnection;
 
-    // Declaração das strings SQL
     static const string SQL_addMovement;
     static const string SQL_getMovementsByWallet;
     static const string SQL_getMovementById;
@@ -30,7 +29,6 @@ public:
     MovementDBDAO(ServerDBConnection* connection);
     virtual ~MovementDBDAO();
 
-    // Implementação dos métodos da interface
     virtual void addMovement(const Movement& movement) override;
     virtual vector<Movement> getMovementsByWallet(int walletId) override;
     virtual Movement getMovementById(int movementId) override;

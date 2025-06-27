@@ -256,8 +256,7 @@ void Controller::registerSale() {
     string dateStr = Utils::getInput("Enter the date (format: YYYY-MM-DD): ");
     Date date(dateStr);
     
-    double amount = Utils::getDoubleInput("Amount to sell (max " + to_string(balance) + "): ");
-    
+    double amount = Utils::getDoubleInput("Amount to sell (max " + formattedBalance + "): ");    
     if (amount <= 0 || amount > balance) {
         Utils::printMessage("Invalid amount!");
         return;
